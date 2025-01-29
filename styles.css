@@ -1,0 +1,124 @@
+/* Global Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f8fb;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    color: #333;
+}
+
+.container {
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 32px;
+    color: #0072ff;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+/* Input Section */
+.input-section {
+    margin-bottom: 20px;
+}
+
+.input-section label {
+    font-size: 18px;
+    color: #333;
+}
+
+input {
+    padding: 12px;
+    width: calc(100% - 20px);
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+}
+
+button {
+    margin-top: 15px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #4caf50, #2196f3);
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: 0.3s;
+    width: 100%;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #45a049, #1e88e5);
+}
+
+/* Result & Settlement Section */
+.result, .settlement {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    display: none;
+}
+
+.result {
+    background-color: #e1f5fe;
+}
+
+.settlement {
+    background-color: #c8e6c9;
+}
+
+/* Input Fields Table */
+.input-fields table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.input-fields th, .input-fields td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.input-fields th {
+    background-color: #0072ff;
+    color: white;
+}
+
+.input-fields td input {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .container {
+        width: 90%;
+        padding: 20px;
+    }
+    h1 {
+        font-size: 24px;
+    }
+    button {
+        font-size: 14px;
+    }
+    input {
+        font-size: 14px;
+    }
+}
