@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPLITS - Expense Sharing</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen p-4 flex items-center justify-center">
+        <div class="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="p-6">
+                <h1 class="text-3xl font-bold text-center text-blue-600">SPLITS</h1>
+                
+                <input type="text" id="nameInput" placeholder="Name" class="w-full p-3 border rounded mt-3">
+                <input type="number" id="amountInput" placeholder="Amount" class="w-full p-3 border rounded mt-3">
+                <button onclick="addExpense()" class="w-full mt-4 p-3 bg-blue-600 text-white rounded hover:bg-blue-700">Add Expense</button>
+                
+                <div id="expensesList" class="mt-4"></div>
+                
+                <button onclick="calculateSettlements()" class="w-full mt-4 p-3 bg-green-600 text-white rounded hover:bg-green-700">Calculate</button>
+                
+                <div id="summary" class="mt-4"></div>
+                <div id="balances" class="mt-4"></div>
+                <div id="settlements" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let expenses = [];
+
+        // Load saved expenses from localStorage
+        window.onload = function() {
+            const savedExpenses = localStorage.getItem('splits-expenses');
+            if (savedExpenses) {
+                expenses = JSON.parse(savedExpenses);
+                renderExpenses();
+            }
+        };
+
+        function addExpense() {
+            const nameInput = document.getElementById('nameInput');
+            const amountInput = document.getElementById('amountInput');
+            
+            if (nameInput.value && amountInput.value) {
+                expenses.push({
+                    name: nameInput.value,
+                    amount: parseFloat(amountInput.value)
+                });
+                
+                localStorage.setItem('splits-expenses', JSON.stringify(expenses));
+                
+                nameInput.value = '';
+                amountInput.value = '';
+                
+                renderExpenses();
+            }
+        }
+
+        function removeExpense(index) {
+            expenses.splice(index, 1);
+            localStorage.setItem('splits-expenses', JSON.stringify(expenses));
+            renderExpenses();
+        }
+
+        function renderExpenses() {
+            const expensesList = document.getElementById('expensesList');
+            if (expenses.length === 0) {
+                expensesList.innerHTML = '';
+                return;
+            }
+
+            expensesList.innerHTML = `
+                <h2 class="text-xl font-semibold">Expenses</h2>
+                ${expenses.map((expense, index) => `
+                    <div class="flex justify-between p-2 border rounded mt-2">
+                        <span>${expense.name}</span>
+                        <span>₹${expense.amount.toFixed(2)}</span>
+                        <button onclick="removeExpense(${index})" class="text-red-500 hover:text-red-700">×</button>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function calculateSettlements() {
+            if (expenses.length === 0) return;
+
+            // Calculate total and fair share
+            const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const fairShare = totalExpenses / expenses.length;
+
+            // Calculate balances
+            let balanceSheet = expenses.map(exp => ({
+                name: exp.name,
+                paid: exp.amount,
+                fairShare: fairShare,
+                balance: Number((exp.amount - fairShare).toFixed(2))
+            }));
+
+            // Find creditors and debtors
+            const creditors = balanceSheet.filter(b => b.balance > 0);
+            const totalCredit = creditors.reduce((sum, c) => sum + c.balance, 0);
+
+            // Generate settlements
+            let settlements = [];
+            balanceSheet
+                .filter(debtor => debtor.balance < 0)
+                .forEach(debtor => {
+                    let amountToPay = Math.abs(debtor.balance);
+                    
+                    creditors.forEach(creditor => {
+                        if (amountToPay > 0) {
+                            const creditorShare = creditor.balance / totalCredit;
+                            const paymentAmount = Number((amountToPay * creditorShare).toFixed(2));
+                            
+                            if (paymentAmount > 0) {
+                                settlements.push({
+                                    from: debtor.name,
+                                    to: creditor.name,
+                                    amount: paymentAmount
+                                });
+                            }
+                        }
+                    });
+                });
+
+            // Render results
+            renderSummary(totalExpenses, fairShare);
+            renderBalances(balanceSheet);
+            renderSettlements(settlements);
+        }
+
+        function renderSummary(totalExpenses, fairShare) {
+            document.getElementById('summary').innerHTML = `
+                <div class="p-3 bg-blue-50 rounded">
+                    <h2 class="text-lg font-semibold">Summary</h2>
+                    <p>Total Expenses: ₹${totalExpenses.toFixed(2)}</p>
+                    <p>Fair Share per Person: ₹${fairShare.toFixed(2)}</p>
+                    <p>Number of People: ${expenses.length}</p>
+                </div>
+            `;
+        }
+
+        function renderBalances(balanceSheet) {
+            document.getElementById('balances').innerHTML = `
+                <h2 class="text-xl font-semibold">Balance Overview</h2>
+                ${balanceSheet.map(balance => `
+                    <div class="p-2 border rounded mt-2">
+                        <p>
+                            ${balance.name}: 
+                            <span class="${balance.balance > 0 ? 'text-green-600' : 'text-red-600'}">
+                                ₹${balance.balance.toFixed(2)}
+                            </span>
+                            <br>
+                            <span class="text-sm text-gray-500">
+                                Paid: ₹${balance.paid.toFixed(2)} | Fair share: ₹${balance.fairShare.toFixed(2)}
+                            </span>
+                        </p>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function renderSettlements(settlements) {
+            document.getElementById('settlements').innerHTML = `
+                <h2 class="text-xl font-semibold">Settlements</h2>
+                ${settlements.map(settlement => `
+                    <div class="p-2 border rounded mt-2 bg-green-50">
+                        <p>${settlement.from} pays ₹${settlement.amount.toFixed(2)} to ${settlement.to}</p>
+                    </div>
+                `).join('')}
+            `;
+        }
+    </script>
+</body>
+</html>
